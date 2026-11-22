@@ -1,0 +1,101 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Medical Specialists & Doctors{% endblock %}
+
+{% block dashboard_content %}
+<!-- Search & Filters -->
+<div class="mq-card p-3 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <form method="get" class="d-flex flex-wrap gap-2 flex-grow-1">
+      <input type="text" name="q" class="form-control form-control-sm" style="max-width: 250px;" placeholder="Search name or specialty..." value="{{ search_query }}">
+
+      <select name="department" class="form-select form-select-sm" style="max-width: 220px;">
+        <option value="">-- All Departments --</option>
+        {% for d in departments %}
+          <option value="{{ d.id }}" {% if selected_dept == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i> Search</button>
+      <a href="{% url 'doctors:doctor_list' %}" class="btn btn-sm btn-light border"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </form>
+
+    {% if user.is_admin_role %}
+      <a href="{% url 'doctors:doctor_create' %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add Doctor
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Doctor Cards Grid -->
+<div class="row g-4">
+  {% for doc in doctors %}
+    <div class="col-md-6 col-xl-4">
+      <div class="mq-card h-100 p-4 d-flex flex-column">
+        <div class="d-flex align-items-start justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 52px; height: 52px;">
+              {{ doc.user.first_name|slice:":1" }}{{ doc.user.last_name|slice:":1" }}
+            </div>
+            <div>
+              <h5 class="fw-bold mb-0 text-dark">{{ doc.full_name }}</h5>
+              <div class="small text-primary fw-semibold">{{ doc.specialization }}</div>
+            </div>
+          </div>
+          {% if doc.is_available %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Available</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary">Off Duty</span>
+          {% endif %}
+        </div>
+
+        <div class="bg-light p-3 rounded-3 mb-3 small">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Department:</span>
+            <span class="fw-semibold text-dark">{{ doc.department.name|default:"General" }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Cabin / Room:</span>
+            <span class="fw-semibold text-primary">{{ doc.room_number|default:"Cabin 1" }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Avg. Consultation:</span>
+            <span class="fw-semibold text-dark">{{ doc.avg_consultation_time }} mins</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Consultation Fee:</span>
+            <span class="fw-bold text-success">${{ doc.consultation_fee }}</span>
+          </div>
+        </div>
+
+        <div class="mt-auto pt-3 border-top d-flex gap-2 justify-content-between align-items-center">
+          <a href="{% url 'doctors:doctor_detail' doc.id %}" class="btn btn-sm btn-outline-secondary">
+            View Schedule
+          </a>
+
+          <div class="d-flex gap-1">
+            {% if user.is_admin_role or user.is_receptionist_role %}
+              <button class="btn btn-sm btn-outline-warning btn-toggle-availability" data-doctor-id="{{ doc.id }}" title="Toggle On/Off Duty">
+                <i class="bi bi-power"></i>
+              </button>
+            {% endif %}
+
+            {% if user.is_admin_role %}
+              <a href="{% url 'doctors:doctor_update' doc.id %}" class="btn btn-sm btn-outline-primary" title="Edit Doctor Profile">
+                <i class="bi bi-pencil"></i>
+              </a>
+            {% endif %}
+
+            <a href="{% url 'appointments:book_appointment' %}?doctor_id={{ doc.id }}" class="btn btn-sm btn-primary">
+              Book
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12 text-center py-5 text-muted">No doctors found matching the search criteria.</div>
+  {% endfor %}
+</div>
+{% endblock %}

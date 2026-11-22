@@ -1,0 +1,78 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}{% if is_create %}Add Hospital Resource{% else %}Edit Resource – {{ resource.room_number }}{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-door-open-fill me-2"></i>{% if is_create %}Register New Hospital Resource{% else %}Edit Resource Details{% endif %}
+        </h5>
+        <a href="{% url 'hospital_resources:resource_list' %}" class="btn btn-sm btn-outline-secondary">&larr; Back to Directory</a>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Resource / Room Name *</label>
+              {{ form.name }}
+              {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Room / Bay Identifier (e.g. R-101) *</label>
+              {{ form.room_number }}
+              {% if form.room_number.errors %}<div class="text-danger small">{{ form.room_number.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Resource Type *</label>
+              {{ form.resource_type }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Department Wing</label>
+              {{ form.department }}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Assigned Specialist Doctor</label>
+              {{ form.assigned_doctor }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Initial Status</label>
+              {{ form.status }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Capacity (Patients)</label>
+              {{ form.capacity }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">Equipment / Maintenance Notes</label>
+            {{ form.notes }}
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between">
+            <a href="{% url 'hospital_resources:resource_list' %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-save me-2"></i> Save Resource
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

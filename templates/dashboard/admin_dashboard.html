@@ -1,0 +1,304 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Hospital Administration & Analytics{% endblock %}
+
+{% block dashboard_content %}
+<!-- Analytics KPI Stat Cards Row -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-blue">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ total_patients }}</div>
+        <div class="stat-label">Total Registered Patients</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-purple">
+        <i class="bi bi-person-badge-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ total_doctors }} <span class="fs-6 text-success fw-normal">({{ active_doctors }} On Duty)</span></div>
+        <div class="stat-label">Medical Specialists</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-amber">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ waiting_tokens_count }}</div>
+        <div class="stat-label">Patients Waiting Today</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-emerald">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ completed_tokens_count }}</div>
+        <div class="stat-label">Consultations Completed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-blue">
+        <i class="bi bi-calendar2-check-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ today_appointments_count }}</div>
+        <div class="stat-label">Today's Appointments</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-rose">
+        <i class="bi bi-x-circle-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ today_cancelled_appointments }}</div>
+        <div class="stat-label">Cancelled Appointments</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-amber">
+        <i class="bi bi-stopwatch-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">~{{ avg_wait_time }} <span class="fs-6 fw-normal text-muted">mins</span></div>
+        <div class="stat-label">Average Waiting Time</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-emerald">
+        <i class="bi bi-door-open-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ available_resources }} / {{ total_resources }}</div>
+        <div class="stat-label">Consultation Rooms Free</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Department Activity Today</h6>
+        <span class="badge bg-light text-muted border">Daily Volume</span>
+      </div>
+      <div class="mq-card-body">
+        <canvas id="deptActivityChart" height="230"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-pie-chart-fill text-info me-2"></i>Hospital Resource Occupancy</h6>
+        <span class="badge bg-light text-muted border">Bays & Rooms</span>
+      </div>
+      <div class="mq-card-body d-flex align-items-center justify-content-center">
+        <div style="max-height: 230px; width: 100%;">
+          <canvas id="resourceOccupancyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-graph-up-arrow text-success me-2"></i>7-Day Patient Appointment Trend</h6>
+        <span class="badge bg-light text-muted border">Weekly Influx</span>
+      </div>
+      <div class="mq-card-body">
+        <canvas id="weeklyTrendChart" height="90"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Live Queue Stream & Quick Actions Row -->
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-list-check text-primary me-2"></i>Recent Queue Activity (Today)</h6>
+        <a href="{% url 'queue_management:live_queue' %}" class="btn btn-sm btn-outline-primary">View Full Queue</a>
+      </div>
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Dept</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tok in recent_tokens %}
+              <tr>
+                <td>
+                  <a href="{% url 'queue_management:token_detail' tok.id %}" class="fw-bold text-primary text-decoration-none">
+                    {{ tok.token_number }}
+                  </a>
+                </td>
+                <td>{{ tok.patient.display_name }}</td>
+                <td>{{ tok.doctor.full_name }}</td>
+                <td><span class="badge bg-light text-dark border">{{ tok.department.code }}</span></td>
+                <td>
+                  {% if tok.is_emergency %}
+                    <span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i> EMERGENCY</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary">Normal</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="status-badge status-{{ tok.status|lower }}">{{ tok.get_status_display }}</span>
+                </td>
+                <td class="text-muted small">{{ tok.created_at|time:"H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">No queue tokens generated yet today.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Administrative Controls</h6>
+      </div>
+      <div class="mq-card-body d-flex flex-column gap-2">
+        <a href="{% url 'doctors:doctor_create' %}" class="btn btn-outline-primary text-start py-2">
+          <i class="bi bi-person-plus-fill me-2 text-primary"></i> Add New Doctor
+        </a>
+        <a href="{% url 'doctors:department_create' %}" class="btn btn-outline-primary text-start py-2">
+          <i class="bi bi-plus-circle-fill me-2 text-info"></i> Create Department
+        </a>
+        <a href="{% url 'hospital_resources:resource_create' %}" class="btn btn-outline-primary text-start py-2">
+          <i class="bi bi-door-open-fill me-2 text-success"></i> Add Consultation Room
+        </a>
+        <a href="{% url 'queue_management:public_display_board' %}" target="_blank" class="btn btn-outline-warning text-dark text-start py-2 fw-semibold">
+          <i class="bi bi-tv-fill me-2 text-warning"></i> Open Waiting Room Display
+        </a>
+        <hr class="my-2">
+        <a href="/admin/" target="_blank" class="btn btn-light border text-start py-2 text-muted">
+          <i class="bi bi-shield-lock-fill me-2 text-secondary"></i> Django Super Admin Panel
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Department Activity Bar Chart
+  const deptLabels = {{ dept_labels_json|safe }};
+  const deptAppCounts = {{ dept_app_counts_json|safe }};
+  const deptTokenCounts = {{ dept_token_counts_json|safe }};
+
+  new Chart(document.getElementById('deptActivityChart'), {
+    type: 'bar',
+    data: {
+      labels: deptLabels,
+      datasets: [
+        {
+          label: 'Appointments',
+          data: deptAppCounts,
+          backgroundColor: '#0f2c59',
+          borderRadius: 6,
+        },
+        {
+          label: 'Queue Tokens',
+          data: deptTokenCounts,
+          backgroundColor: '#0284c7',
+          borderRadius: 6,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  // Resource Occupancy Doughnut Chart
+  new Chart(document.getElementById('resourceOccupancyChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Available', 'Occupied', 'Maintenance'],
+      datasets: [{
+        data: [{{ available_resources }}, {{ occupied_resources }}, {{ maintenance_resources }}],
+        backgroundColor: ['#10b981', '#0f2c59', '#f59e0b'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // 7-day Weekly Trend Chart
+  const trendLabels = {{ trend_labels_json|safe }};
+  const trendCounts = {{ trend_counts_json|safe }};
+
+  new Chart(document.getElementById('weeklyTrendChart'), {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [{
+        label: 'Daily Patient Volume',
+        data: trendCounts,
+        borderColor: '#0284c7',
+        backgroundColor: 'rgba(2, 132, 199, 0.12)',
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#0f2c59',
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}{% if is_create %}Add New Specialist Doctor{% else %}Edit Doctor Profile – Dr. {{ doctor.user.display_name }}{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-person-badge me-2"></i>{% if is_create %}Add New Doctor Profile{% else %}Update Doctor Profile{% endif %}
+        </h5>
+        <a href="{% url 'doctors:doctor_list' %}" class="btn btn-sm btn-outline-secondary">&larr; Back to List</a>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          {% if is_create %}
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">1. Login Credentials</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Doctor Username *</label>
+                <input type="text" name="username" class="form-control" placeholder="e.g. dr.watson" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Temporary Password *</label>
+                <input type="password" name="password" class="form-control" placeholder="Minimum 6 characters" required>
+              </div>
+            </div>
+          {% endif %}
+
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">{% if is_create %}2. Personal & Professional Details{% else %}Personal & Professional Details{% endif %}</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">First Name *</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Last Name *</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email Address *</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phone Number</label>
+              {{ form.phone_number }}
+              {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Clinical Department & Practice Settings</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Department *</label>
+              {{ form.department }}
+              {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Specialization *</label>
+              {{ form.specialization }}
+              {% if form.specialization.errors %}<div class="text-danger small">{{ form.specialization.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Qualifications</label>
+              {{ form.qualification }}
+              {% if form.qualification.errors %}<div class="text-danger small">{{ form.qualification.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Consultation Cabin / Room</label>
+              {{ form.room_number }}
+              {% if form.room_number.errors %}<div class="text-danger small">{{ form.room_number.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Capacity & Timings</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Consultation Fee ($)</label>
+              {{ form.consultation_fee }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Avg. Time (Mins/Patient)</label>
+              {{ form.avg_consultation_time }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Max Daily Capacity</label>
+              {{ form.daily_capacity }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Shift Start</label>
+              {{ form.shift_start }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Shift End</label>
+              {{ form.shift_end }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Available Days</label>
+              {{ form.available_days }}
+            </div>
+            <div class="col-12 mt-3">
+              <div class="form-check form-switch">
+                {{ form.is_available }}
+                <label class="form-check-label fw-semibold" for="{{ form.is_available.id_for_label }}">
+                  Doctor Currently Available & On Duty
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between">
+            <a href="{% url 'doctors:doctor_list' %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-save me-2"></i> Save Doctor Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

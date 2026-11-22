@@ -1,0 +1,69 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Update Medical Profile – {{ patient.user.display_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-pencil-square me-2"></i>Edit Patient Medical Record
+        </h5>
+        <a href="{% url 'patients:patient_detail' patient.id %}" class="btn btn-sm btn-outline-secondary">&larr; Back to Patient Record</a>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Date of Birth</label>
+              {{ form.date_of_birth }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Gender</label>
+              {{ form.gender }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Blood Group</label>
+              {{ form.blood_group }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Emergency Contact Number</label>
+            {{ form.emergency_contact }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Residential Address</label>
+            {{ form.address }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Known Drug/Food Allergies</label>
+            {{ form.allergies }}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">Past Medical History / Chronic Conditions</label>
+            {{ form.medical_history }}
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between">
+            <a href="{% url 'patients:patient_detail' patient.id %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-save me-2"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

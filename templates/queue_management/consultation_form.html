@@ -1,0 +1,111 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Clinical Consultation – Token #{{ token.token_number }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="mq-card mb-4">
+      <!-- Patient Summary Header -->
+      <div class="mq-card-header bg-light">
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div>
+            <h5 class="fw-bold mb-0 text-primary">
+              <i class="bi bi-prescription2 me-2"></i>Outpatient Consultation & Prescription
+            </h5>
+            <div class="small text-muted mt-1">
+              Token: <strong>{{ token.token_number }}</strong> &bull; Patient: <strong>{{ token.patient.display_name }}</strong> (ID: {{ patient_profile.patient_id }})
+            </div>
+          </div>
+          <div class="text-end">
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+              Blood: {{ patient_profile.blood_group|default:"N/A" }}
+            </span>
+            <span class="badge bg-secondary-subtle text-secondary ms-1">
+              Age: {{ patient_profile.age|default:"N/A" }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mq-card-body">
+        <!-- Patient Known Allergies Banner -->
+        {% if patient_profile.allergies %}
+          <div class="alert alert-warning py-2 mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+            <div><strong>Patient Allergies:</strong> {{ patient_profile.allergies }}</div>
+          </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Vitals Input Strip -->
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">1. Patient Vital Signs</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold">Blood Pressure</label>
+              {{ form.bp }}
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold">Pulse Rate</label>
+              {{ form.pulse }}
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold">Body Temperature</label>
+              {{ form.temperature }}
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold">Oxygen Saturation (SpO2)</label>
+              {{ form.spo2 }}
+            </div>
+          </div>
+
+          <!-- Clinical Findings -->
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">2. Clinical Findings & Diagnosis</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Presenting Complaints / Symptoms</label>
+              {{ form.symptoms }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Primary Clinical Diagnosis *</label>
+              {{ form.diagnosis }}
+              {% if form.diagnosis.errors %}<div class="text-danger small">{{ form.diagnosis.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <!-- Medication Prescription -->
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">3. Prescribed Medication & Treatment Plan</h6>
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">Prescription & Dosage Instructions *</label>
+            {{ form.prescription }}
+            <div class="form-text">Specify drug name, strength, dosage schedule (e.g. 1-0-1 after food), and duration.</div>
+            {% if form.prescription.errors %}<div class="text-danger small">{{ form.prescription.errors }}</div>{% endif %}
+          </div>
+
+          <!-- Follow-up & Notes -->
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">4. Recommendations & Follow-Up</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">Recommended Follow-up Date</label>
+              {{ form.follow_up_date }}
+            </div>
+            <div class="col-md-7">
+              <label class="form-label small fw-semibold">Lab Orders / Dietary Advice / Internal Notes</label>
+              {{ form.notes }}
+            </div>
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+            <a href="{% url 'dashboard:doctor' %}" class="btn btn-light border">Cancel & Return</a>
+            <button type="submit" class="btn btn-success btn-lg fw-bold px-4">
+              <i class="bi bi-check2-circle me-2"></i> Save Record & Complete Consultation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

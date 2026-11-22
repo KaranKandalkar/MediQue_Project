@@ -1,0 +1,217 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Patient Portal – Welcome, {{ user.first_name|default:user.username }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Patient Identity Banner & Quick Actions -->
+<div class="row g-3 mb-4 align-items-center">
+  <div class="col-md-8">
+    <div class="d-flex align-items-center gap-3">
+      <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 56px; height: 56px;">
+        {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+      </div>
+      <div>
+        <h4 class="fw-bold mb-0 text-dark">{{ user.display_name }}</h4>
+        <div class="text-muted small">
+          <span class="badge bg-light text-dark border">ID: {{ patient_profile.patient_id }}</span>
+          <span class="ms-2">Blood Group: <strong class="text-danger">{{ patient_profile.blood_group|default:"N/A" }}</strong></span>
+          <span class="ms-2">Contact: {{ user.phone_number }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 text-md-end">
+    <a href="{% url 'appointments:book_appointment' %}" class="btn btn-primary fw-semibold px-4 py-2 shadow-sm">
+      <i class="bi bi-calendar-plus-fill me-2"></i> Book Doctor Appointment
+    </a>
+  </div>
+</div>
+
+<!-- Live Token Tracker Section (if token active today) -->
+{% if active_tokens %}
+  <div class="mb-4">
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-broadcast text-danger me-2"></i>Live Queue Ticket & Wait-Time Tracker</h5>
+    <div class="row g-4">
+      {% for item in active_tokens %}
+        <div class="col-lg-6">
+          <div class="token-pass {% if item.token.is_emergency %}token-pass-emergency{% endif %}" id="patientLiveTokenTracker" data-token-id="{{ item.token.id }}">
+            <div id="patientTokenAlert" class="alert alert-danger fw-bold d-none mb-3"></div>
+
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <span class="badge bg-primary text-white px-3 py-1 rounded-pill mb-1">
+                  {{ item.token.department.name }}
+                </span>
+                <div class="token-badge-large {% if item.token.is_emergency %}emergency{% endif %}">
+                  {{ item.token.token_number }}
+                </div>
+              </div>
+              <div class="text-end">
+                <span id="tokenLiveStatusBadge" class="status-badge status-{{ item.token.status|lower }} fs-6">
+                  {{ item.token.get_status_display }}
+                </span>
+                {% if item.token.is_emergency %}
+                  <div class="badge bg-danger mt-1 d-block"><i class="bi bi-exclamation-triangle-fill"></i> Emergency Triage</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Doctor & Room details -->
+            <div class="row g-2 mb-3 bg-white p-3 rounded-3 border">
+              <div class="col-6">
+                <div class="small text-muted">Consulting Specialist:</div>
+                <div class="fw-bold text-dark">{{ item.token.doctor.full_name }}</div>
+              </div>
+              <div class="col-6 text-end">
+                <div class="small text-muted">Assigned Cabin / Room:</div>
+                <div class="fw-bold text-primary fs-5">{{ item.token.doctor.room_number|default:"Cabin 1" }}</div>
+              </div>
+            </div>
+
+            <!-- Wait-Time & Position Metrics Grid -->
+            <div class="row g-3 text-center">
+              <div class="col-4">
+                <div class="p-2 rounded-3 bg-white border">
+                  <div id="tokenLivePosition" class="fs-3 fw-bold text-primary">#{{ item.position }}</div>
+                  <div class="small text-muted fw-semibold">Your Position</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded-3 bg-white border">
+                  <div id="tokenLiveWait" class="fs-3 fw-bold text-warning">~{{ item.est_wait }}m</div>
+                  <div class="small text-muted fw-semibold">Est. Wait Time</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded-3 bg-white border">
+                  <div id="tokenLiveCurrentServing" class="fs-3 fw-bold text-success">{{ item.current_serving }}</div>
+                  <div class="small text-muted fw-semibold">Now Serving</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 pt-2 text-center text-muted small">
+              <i class="bi bi-arrow-repeat text-primary me-1 spin"></i> Live tracking updates automatically every few seconds.
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- Upcoming Appointments & Consultation History -->
+<div class="row g-4">
+  <!-- Upcoming Appointments -->
+  <div class="col-lg-6">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-calendar2-check-fill text-primary me-2"></i>Upcoming Appointments
+        </h6>
+        <a href="{% url 'appointments:book_appointment' %}" class="btn btn-sm btn-outline-primary">+ Book Slot</a>
+      </div>
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Doctor & Dept</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in upcoming_appointments %}
+              <tr>
+                <td>
+                  <div class="fw-bold text-dark">{{ appt.appointment_date|date:"M d, Y" }}</div>
+                  <div class="small text-muted">{{ appt.appointment_time|time:"H:i" }}</div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ appt.doctor.full_name }}</div>
+                  <div class="small text-muted">{{ appt.department.name }}</div>
+                </td>
+                <td><span class="status-badge status-{{ appt.status|lower }}">{{ appt.get_status_display }}</span></td>
+                <td>
+                  {% if appt.is_cancellable %}
+                    <a href="{% url 'appointments:cancel_appointment' appt.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?');">
+                      Cancel
+                    </a>
+                  {% else %}
+                    <span class="text-muted small">Locked</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-4 text-muted">
+                  No upcoming appointments booked. 
+                  <a href="{% url 'appointments:book_appointment' %}" class="text-primary text-decoration-none fw-semibold">Book one now</a>.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Past Consultations & Prescriptions -->
+  <div class="col-lg-6">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-file-medical-fill text-success me-2"></i>Medical Advice & Prescriptions
+        </h6>
+        <span class="badge bg-light text-muted border">{{ past_consultations|length }} records</span>
+      </div>
+      <div class="mq-card-body p-0">
+        <div class="accordion accordion-flush" id="consultationAccordion">
+          {% for c in past_consultations %}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="heading{{ c.id }}">
+                <button class="accordion-button collapsed py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ c.id }}">
+                  <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                    <div>
+                      <div class="fw-bold text-dark">{{ c.doctor.full_name }}</div>
+                      <div class="small text-muted">{{ c.start_time|date:"M d, Y" }} &bull; {{ c.doctor.department.name }}</div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success">Prescription Ready</span>
+                  </div>
+                </button>
+              </h2>
+              <div id="collapse{{ c.id }}" class="accordion-collapse collapse" data-bs-parent="#consultationAccordion">
+                <div class="accordion-body bg-light">
+                  <div class="mb-2">
+                    <strong class="text-dark">Diagnosis:</strong>
+                    <p class="mb-1 text-muted">{{ c.diagnosis }}</p>
+                  </div>
+                  <div class="mb-2">
+                    <strong class="text-success"><i class="bi bi-prescription2 me-1"></i>Prescribed Medication:</strong>
+                    <div class="bg-white p-2 rounded border small text-dark mt-1" style="white-space: pre-line;">{{ c.prescription }}</div>
+                  </div>
+                  {% if c.vital_signs %}
+                    <div class="small text-muted mb-2">
+                      <strong>Vitals Recorded:</strong> 
+                      BP: {{ c.vital_signs.bp|default:"N/A" }}, Pulse: {{ c.vital_signs.pulse|default:"N/A" }}, Temp: {{ c.vital_signs.temperature|default:"N/A" }}
+                    </div>
+                  {% endif %}
+                  {% if c.follow_up_date %}
+                    <div class="small text-primary fw-semibold">
+                      <i class="bi bi-calendar-event me-1"></i>Follow-up Visit Recommended: {{ c.follow_up_date|date:"M d, Y" }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-center py-4 text-muted">No past consultation records found.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

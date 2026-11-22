@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}MediQueue – Smart Hospital Queue & Resource Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 text-white" style="background: linear-gradient(135deg, #0f2c59 0%, #1e3a8a 60%, #0284c7 100%);">
+  <div class="container py-4">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <span class="badge bg-info text-dark px-3 py-2 rounded-pill fw-bold text-uppercase mb-3">
+          <i class="bi bi-cpu-fill me-1"></i> Next-Gen Outpatient Queue SaaS
+        </span>
+        <h1 class="display-4 fw-bold lh-sm mb-3">
+          Smart Hospital Queue & Resource Management
+        </h1>
+        <p class="lead text-white-50 mb-4">
+          MediQueue eliminates overcrowded hospital waiting rooms, reduces patient anxiety through precise wait-time estimation, automates digital token workflows, and empowers clinical teams.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          {% if user.is_authenticated %}
+            <a href="{% url 'dashboard:index' %}" class="btn btn-warning btn-lg fw-bold px-4 shadow">
+              <i class="bi bi-speedometer2 me-2"></i> Open My Dashboard
+            </a>
+          {% else %}
+            <a href="{% url 'accounts:register' %}" class="btn btn-warning btn-lg fw-bold px-4 shadow">
+              <i class="bi bi-person-plus-fill me-2"></i> Patient Portal Signup
+            </a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-box-arrow-in-right me-2"></i> Staff & Doctor Login
+            </a>
+          {% endif %}
+          <a href="{% url 'queue_management:public_display_board' %}" target="_blank" class="btn btn-light btn-lg px-4 shadow-sm text-primary fw-semibold">
+            <i class="bi bi-tv-fill text-danger me-2"></i> Live Lobby TV Screen
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-lg rounded-4 p-4 text-dark bg-white">
+          <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-activity me-2"></i>Live Hospital Vitals</h5>
+            <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-circle-fill me-1 small"></i> System Active</span>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="p-3 rounded-3 bg-light text-center border">
+                <div class="fs-2 fw-bold text-primary">{{ available_doctors_count }}</div>
+                <div class="small text-muted fw-semibold">Doctors On Duty</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 rounded-3 bg-light text-center border">
+                <div class="fs-2 fw-bold text-warning">{{ active_tokens_today }}</div>
+                <div class="small text-muted fw-semibold">Active Queue Tokens</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 rounded-3 bg-light text-center border">
+                <div class="fs-2 fw-bold text-success">~14m</div>
+                <div class="small text-muted fw-semibold">Avg. Wait Time</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 rounded-3 bg-light text-center border">
+                <div class="fs-2 fw-bold text-info">{{ departments|length }}+</div>
+                <div class="small text-muted fw-semibold">Specialty Wings</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top text-center">
+            <a href="{% url 'appointments:book_appointment' %}" class="btn btn-primary w-100 py-2 fw-semibold">
+              <i class="bi bi-calendar-check me-2"></i> Book Online Consultation Slot
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Role Portals Access Cards -->
+<section class="py-5 bg-white">
+  <div class="container py-3">
+    <div class="text-center mb-5">
+      <h6 class="text-primary fw-bold text-uppercase letter-spacing-1">Tailored Portals</h6>
+      <h2 class="fw-bold">Designed for Every Hospital Stakeholder</h2>
+      <p class="text-muted">Explore dedicated role-based dashboards engineered for clinical efficiency and patient convenience.</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Admin -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mq-card h-100 p-4 border-top border-4 border-primary">
+          <div class="stat-icon stat-icon-blue mb-3">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <h5 class="fw-bold">Hospital Admin</h5>
+          <p class="text-muted small">Real-time hospital analytics, department capacity, doctor schedules, room allocations, and queue auditing.</p>
+          <a href="{% url 'dashboard:admin' %}" class="btn btn-outline-primary btn-sm w-100 mt-auto">Admin View</a>
+        </div>
+      </div>
+
+      <!-- Doctor -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mq-card h-100 p-4 border-top border-4 border-indigo" style="border-top-color: #6366f1 !important;">
+          <div class="stat-icon stat-icon-purple mb-3">
+            <i class="bi bi-person-workspace"></i>
+          </div>
+          <h5 class="fw-bold">Doctor Desk</h5>
+          <p class="text-muted small">One-click "Call Next Patient", digital consultation notes, prescription recording, and availability management.</p>
+          <a href="{% url 'dashboard:doctor' %}" class="btn btn-outline-primary btn-sm w-100 mt-auto">Doctor View</a>
+        </div>
+      </div>
+
+      <!-- Receptionist -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mq-card h-100 p-4 border-top border-4 border-teal" style="border-top-color: #0d9488 !important;">
+          <div class="stat-icon stat-icon-emerald mb-3">
+            <i class="bi bi-receipt-cutoff"></i>
+          </div>
+          <h5 class="fw-bold">Front Reception</h5>
+          <p class="text-muted small">Fast walk-in patient registration, daily token generation, emergency priority triage, and slot check-in.</p>
+          <a href="{% url 'dashboard:receptionist' %}" class="btn btn-outline-primary btn-sm w-100 mt-auto">Reception View</a>
+        </div>
+      </div>
+
+      <!-- Patient -->
+      <div class="col-md-6 col-lg-3">
+        <div class="mq-card h-100 p-4 border-top border-4 border-warning">
+          <div class="stat-icon stat-icon-amber mb-3">
+            <i class="bi bi-phone"></i>
+          </div>
+          <h5 class="fw-bold">Patient Portal</h5>
+          <p class="text-muted small">Live digital token pass, estimated wait time updates, upcoming appointment bookings, and past medical advice.</p>
+          <a href="{% url 'dashboard:patient' %}" class="btn btn-outline-primary btn-sm w-100 mt-auto">Patient View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Departments Section -->
+<section class="py-5 bg-light border-top border-bottom">
+  <div class="container py-2">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+      <div>
+        <h6 class="text-primary fw-bold text-uppercase">Clinical Wings</h6>
+        <h3 class="fw-bold mb-0">Hospital Departments</h3>
+      </div>
+      <a href="{% url 'doctors:doctor_list' %}" class="btn btn-outline-secondary">View All Doctors <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="row g-4">
+      {% for dept in departments %}
+        <div class="col-md-4">
+          <div class="mq-card p-4 h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="stat-icon stat-icon-blue">
+                <i class="bi {{ dept.icon|default:'bi-hospital' }}"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-0">{{ dept.name }}</h5>
+                <span class="badge bg-secondary-subtle text-secondary">{{ dept.code }} Wing</span>
+              </div>
+            </div>
+            <p class="text-muted small mb-3">{{ dept.description|truncatewords:20 }}</p>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span class="small text-muted">{{ dept.active_doctors_count }} Active Specialists</span>
+              <a href="{% url 'doctors:doctor_list' %}?department={{ dept.id }}" class="text-decoration-none fw-semibold small text-primary">
+                Explore <i class="bi bi-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

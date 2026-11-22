@@ -1,0 +1,48 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}My Profile{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-person-gear me-2"></i>User Profile & Settings</h5>
+        <span class="role-badge role-badge-{{ user.role|lower }}">{{ user.get_role_display }}</span>
+      </div>
+      <div class="mq-card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Last Name</label>
+              {{ form.last_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email Address</label>
+              {{ form.email }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phone Number</label>
+              {{ form.phone_number }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Profile Photo</label>
+              {{ form.profile_picture }}
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-save me-2"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

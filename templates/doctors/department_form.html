@@ -1,0 +1,65 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}{% if is_create %}Create Department{% else %}Edit Department – {{ department.name }}{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-diagram-3-fill me-2"></i>{% if is_create %}Create New Department{% else %}Update Department Details{% endif %}
+        </h5>
+        <a href="{% url 'doctors:department_list' %}" class="btn btn-sm btn-outline-secondary">&larr; Back to Departments</a>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Department Name *</label>
+              {{ form.name }}
+              {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Short Code (e.g. CARD) *</label>
+              {{ form.code }}
+              {% if form.code.errors %}<div class="text-danger small">{{ form.code.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Bootstrap Icon Class</label>
+            {{ form.icon }}
+            <div class="form-text">e.g. bi-heart-pulse, bi-bandaid, bi-capsule, bi-lungs</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Description</label>
+            {{ form.description }}
+          </div>
+
+          <div class="mb-4 form-check form-switch">
+            {{ form.is_active }}
+            <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+              Department is Active & Open for Appointments
+            </label>
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between">
+            <a href="{% url 'doctors:department_list' %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-save me-2"></i> Save Department
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Reception & Front Desk Management{% endblock %}
+
+{% block dashboard_content %}
+<!-- Quick Action Buttons -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <a href="{% url 'patients:patient_create' %}" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm">
+      <i class="bi bi-person-plus-fill fs-5"></i> Register Walk-in Patient
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <a href="{% url 'queue_management:token_create' %}" class="btn btn-accent w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm">
+      <i class="bi bi-ticket-perforated-fill fs-5"></i> Issue Daily Token
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <a href="{% url 'appointments:book_appointment' %}" class="btn btn-light border w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm">
+      <i class="bi bi-calendar-plus text-primary fs-5"></i> Book Appointment
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <a href="{% url 'queue_management:public_display_board' %}" target="_blank" class="btn btn-warning w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm">
+      <i class="bi bi-tv-fill fs-5"></i> Open Lobby TV Board
+    </a>
+  </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-blue">
+        <i class="bi bi-ticket-detailed-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ total_tokens_today }}</div>
+        <div class="stat-label">Total Daily Tokens Generated</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-amber">
+        <i class="bi bi-hourglass-top"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ waiting_tokens_today }}</div>
+        <div class="stat-label">Patients Waiting in Lobby</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="mq-card stat-card">
+      <div class="stat-icon stat-icon-rose">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ emergency_tokens_today }}</div>
+        <div class="stat-label">Active Emergency Priorities</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Reception Workspaces -->
+<div class="row g-4">
+  <!-- Today's Appointments Awaiting Check-In -->
+  <div class="col-lg-6">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-calendar-check-fill text-success me-2"></i>Today's Bookings Awaiting Check-in
+        </h6>
+        <span class="badge bg-light text-muted border">{{ today_appointments|length }} booked</span>
+      </div>
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in today_appointments %}
+              <tr>
+                <td class="fw-bold">{{ appt.appointment_time|time:"H:i" }}</td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ appt.patient.display_name }}</div>
+                  <div class="small text-muted">{{ appt.patient.phone_number }}</div>
+                </td>
+                <td>{{ appt.doctor.full_name }}</td>
+                <td><span class="status-badge status-{{ appt.status|lower }}">{{ appt.get_status_display }}</span></td>
+                <td>
+                  {% if appt.status == 'SCHEDULED' %}
+                    <a href="{% url 'appointments:check_in' appt.id %}" class="btn btn-sm btn-primary">
+                      <i class="bi bi-box-arrow-in-right me-1"></i> Check-In
+                    </a>
+                  {% else %}
+                    <span class="text-muted small">Checked In</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">No appointments booked for today.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Tokens Queue & Emergency Triage -->
+  <div class="col-lg-6">
+    <div class="mq-card h-100">
+      <div class="mq-card-header">
+        <h6 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-people-fill text-primary me-2"></i>Active Waiting Lobby Tokens
+        </h6>
+        <a href="{% url 'queue_management:token_create' %}" class="btn btn-sm btn-primary">+ Generate Token</a>
+      </div>
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tok in active_tokens %}
+              <tr class="{% if tok.is_emergency %}table-danger{% endif %}">
+                <td>
+                  <a href="{% url 'queue_management:token_detail' tok.id %}" class="fw-bold text-decoration-none {% if tok.is_emergency %}text-danger{% else %}text-primary{% endif %}">
+                    {{ tok.token_number }}
+                  </a>
+                </td>
+                <td>{{ tok.patient.display_name }}</td>
+                <td>{{ tok.doctor.full_name }}</td>
+                <td>
+                  {% if tok.is_emergency %}
+                    <span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill"></i> EMERGENCY</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary">Normal</span>
+                  {% endif %}
+                </td>
+                <td><span class="status-badge status-{{ tok.status|lower }}">{{ tok.get_status_display }}</span></td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="dropdown">
+                      <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                      <li>
+                        <a class="dropdown-item" href="{% url 'queue_management:token_detail' tok.id %}">
+                          <i class="bi bi-eye me-2"></i> View Token Pass
+                        </a>
+                      </li>
+                      {% if not tok.is_emergency %}
+                        <li>
+                          <a class="dropdown-item text-danger" href="{% url 'queue_management:token_detail' tok.id %}#emergency">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Elevate to Emergency
+                          </a>
+                        </li>
+                      {% endif %}
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form method="post" action="{% url 'queue_management:token_cancel' tok.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item text-muted" onclick="return confirm('Cancel this queue token?');">
+                            <i class="bi bi-x-circle me-2"></i> Cancel Token
+                          </button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">No active waiting tokens.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

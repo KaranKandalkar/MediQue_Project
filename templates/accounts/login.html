@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In – MediQueue{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+      <div class="mq-card shadow-lg p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="sidebar-brand-icon mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.8rem;">
+            <i class="bi bi-hospital"></i>
+          </div>
+          <h3 class="fw-bold text-dark">Welcome to MediQueue</h3>
+          <p class="text-muted small">Sign in to access your role-specific hospital portal</p>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Username or ID</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label small fw-semibold text-muted mb-0">Password</label>
+            </div>
+            {{ form.password }}
+            {% if form.password.errors %}
+              <div class="text-danger small mt-1">{{ form.password.errors }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold mb-3">
+            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In to MediQueue
+          </button>
+        </form>
+
+        <div class="text-center pt-2 border-top">
+          <p class="small text-muted mb-0">New patient? 
+            <a href="{% url 'accounts:register' %}" class="fw-semibold text-primary text-decoration-none">Create a patient account</a>
+          </p>
+        </div>
+
+        <!-- Quick Demo Accounts Login Pill Helper -->
+        <div class="mt-4 pt-3 border-top">
+          <div class="small fw-bold text-muted text-uppercase mb-2 text-center" style="font-size: 0.75rem;">
+            <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Demo Logins
+          </div>
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <button type="button" class="btn btn-sm btn-outline-secondary demo-login-btn" data-user="admin" data-pass="admin123">
+              Admin
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary demo-login-btn" data-user="dr.smith" data-pass="doctor123">
+              Dr. Smith
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success demo-login-btn" data-user="receptionist" data-pass="reception123">
+              Receptionist
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info demo-login-btn" data-user="patient1" data-pass="patient123">
+              Patient
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('.demo-login-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const user = this.getAttribute('data-user');
+      const pass = this.getAttribute('data-pass');
+      document.getElementById('id_username').value = user;
+      document.getElementById('id_password').value = pass;
+    });
+  });
+</script>
+{% endblock %}

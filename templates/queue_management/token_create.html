@@ -1,0 +1,69 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Issue Outpatient Digital Token{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-ticket-perforated-fill me-2"></i>Generate Daily Queue Token
+        </h5>
+        <span class="badge bg-light text-muted border">Front Desk Operation</span>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-semibold small text-muted mb-0">Select Patient *</label>
+              <a href="{% url 'patients:patient_create' %}" class="small text-primary text-decoration-none">
+                + Register New Patient
+              </a>
+            </div>
+            {{ form.patient }}
+            {% if form.patient.errors %}<div class="text-danger small">{{ form.patient.errors }}</div>{% endif %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Department *</label>
+              {{ form.department }}
+              {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Consulting Doctor *</label>
+              {{ form.doctor }}
+              {% if form.doctor.errors %}<div class="text-danger small">{{ form.doctor.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Priority Level</label>
+              {{ form.priority }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Clinical Notes (Required if Emergency)</label>
+              {{ form.priority_notes }}
+            </div>
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+            <a href="{% url 'dashboard:receptionist' %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4 py-2">
+              <i class="bi bi-ticket-fill me-2"></i> Issue & Print Token Pass
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

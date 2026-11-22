@@ -1,0 +1,85 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Patient Directory{% endblock %}
+
+{% block dashboard_content %}
+<!-- Search & Actions -->
+<div class="mq-card p-3 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <form method="get" class="d-flex flex-wrap gap-2 flex-grow-1">
+      <input type="text" name="q" class="form-control form-control-sm" style="max-width: 320px;" placeholder="Search by name, ID, phone, or email..." value="{{ search_query }}">
+      <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i> Search</button>
+      <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-light border"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </form>
+
+    <a href="{% url 'patients:patient_create' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-person-plus-fill me-1"></i> Register Walk-in Patient
+    </a>
+  </div>
+</div>
+
+<!-- Patients Table -->
+<div class="mq-card">
+  <div class="mq-card-header">
+    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-people-fill text-primary me-2"></i>Registered Patients</h6>
+    <span class="badge bg-light text-muted border">{{ patients|length }} Records</span>
+  </div>
+  <div class="table-responsive">
+    <table class="mq-table">
+      <thead>
+        <tr>
+          <th>Patient ID</th>
+          <th>Full Name</th>
+          <th>Phone</th>
+          <th>Gender / Age</th>
+          <th>Blood Group</th>
+          <th>Registered</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+          <tr>
+            <td>
+              <a href="{% url 'patients:patient_detail' p.id %}" class="fw-bold text-primary text-decoration-none">
+                {{ p.patient_id }}
+              </a>
+            </td>
+            <td>
+              <div class="fw-bold text-dark">{{ p.user.display_name }}</div>
+              <div class="small text-muted">{{ p.user.email }}</div>
+            </td>
+            <td>{{ p.user.phone_number|default:"--" }}</td>
+            <td>
+              {{ p.get_gender_display }} &bull; 
+              {% if p.age %}{{ p.age }} yrs{% else %}N/A{% endif %}
+            </td>
+            <td>
+              {% if p.blood_group %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ p.blood_group }}</span>
+              {% else %}
+                <span class="text-muted small">--</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ p.created_at|date:"M d, Y" }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{% url 'patients:patient_detail' p.id %}" class="btn btn-sm btn-outline-secondary" title="View Patient Profile">
+                  <i class="bi bi-file-earmark-person"></i> View
+                </a>
+                <a href="{% url 'queue_management:token_create' %}?patient_id={{ p.user.id }}" class="btn btn-sm btn-outline-primary" title="Generate Queue Token">
+                  <i class="bi bi-ticket-perforated"></i> Token
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">No patient records found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Register Walk-in Patient{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-person-plus-fill me-2"></i>Front Desk Walk-in Registration
+        </h5>
+        <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-outline-secondary">&larr; Patient Directory</a>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">1. Patient Identification</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">First Name *</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Last Name *</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Mobile Number *</label>
+              {{ form.phone_number }}
+              {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email Address (Optional)</label>
+              {{ form.email }}
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">2. Medical & Emergency Info</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Date of Birth</label>
+              {{ form.date_of_birth }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Gender</label>
+              {{ form.gender }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Blood Group</label>
+              {{ form.blood_group }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Emergency Contact Phone</label>
+              {{ form.emergency_contact }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Known Drug/Food Allergies</label>
+              {{ form.allergies }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Residential Address</label>
+              {{ form.address }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Brief Medical History</label>
+              {{ form.medical_history }}
+            </div>
+          </div>
+
+          <div class="mb-4 form-check bg-light p-3 rounded-3 border">
+            <input type="checkbox" name="generate_token" value="1" class="form-check-input ms-0 me-2" id="chkGenerateToken" checked>
+            <label class="form-check-label fw-bold text-primary" for="chkGenerateToken">
+              Immediately Proceed to Generate Queue Token After Registration
+            </label>
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between">
+            <a href="{% url 'dashboard:receptionist' %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4 py-2">
+              <i class="bi bi-person-check-fill me-2"></i> Register Patient
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

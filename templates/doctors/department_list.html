@@ -1,0 +1,64 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Hospital Departments{% endblock %}
+
+{% block dashboard_content %}
+<div class="mq-card">
+  <div class="mq-card-header">
+    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-diagram-3 me-2"></i>Clinical Departments & Wings</h5>
+    {% if user.is_admin_role %}
+      <a href="{% url 'doctors:department_create' %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add Department
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="mq-table">
+      <thead>
+        <tr>
+          <th>Department Name</th>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Active Specialists</th>
+          <th>Status</th>
+          {% if user.is_admin_role %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for dept in departments %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi {{ dept.icon|default:'bi-hospital' }} text-primary fs-5"></i>
+                <span class="fw-bold text-dark">{{ dept.name }}</span>
+              </div>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ dept.code }}</span></td>
+            <td class="text-muted small">{{ dept.description|truncatewords:12|default:"N/A" }}</td>
+            <td><span class="fw-bold text-primary">{{ dept.active_doctors_count }}</span></td>
+            <td>
+              {% if dept.is_active %}
+                <span class="badge bg-success-subtle text-success">Active Wing</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            {% if user.is_admin_role %}
+              <td>
+                <a href="{% url 'doctors:department_update' dept.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No departments created yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

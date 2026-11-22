@@ -1,0 +1,88 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Schedule Doctor Appointment{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mq-card">
+      <div class="mq-card-header">
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="bi bi-calendar-plus me-2"></i>Book Specialist Consultation Slot
+        </h5>
+        <span class="badge bg-light text-muted border">Appointment Booking</span>
+      </div>
+      <div class="mq-card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          {% if is_staff_booking %}
+            <div class="mb-3 p-3 bg-light rounded-3 border">
+              <label class="form-label small fw-semibold text-primary">Booking on Behalf of Patient *</label>
+              <select name="patient_user_id" class="form-select" required>
+                <option value="">-- Choose Registered Patient --</option>
+                {% for p in patients_list %}
+                  <option value="{{ p.id }}" {% if patient_user.id == p.id %}selected{% endif %}>
+                    {{ p.display_name }} ({{ p.patient_profile.patient_id }}) - {{ p.phone_number }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Department *</label>
+              {{ form.department }}
+              {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Specialist Doctor *</label>
+              {{ form.doctor }}
+              {% if form.doctor.errors %}<div class="text-danger small">{{ form.doctor.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Appointment Date *</label>
+              {{ form.appointment_date }}
+              {% if form.appointment_date.errors %}<div class="text-danger small">{{ form.appointment_date.errors }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Preferred Time Slot *</label>
+              {{ form.appointment_time }}
+              <div class="form-text">Clinic slots run in 15-minute intervals (e.g. 09:30, 10:15).</div>
+              {% if form.appointment_time.errors %}<div class="text-danger small">{{ form.appointment_time.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Chief Complaint / Reason for Visit *</label>
+            {{ form.reason }}
+            {% if form.reason.errors %}<div class="text-danger small">{{ form.reason.errors }}</div>{% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small text-muted">Additional Notes (Optional)</label>
+            {{ form.notes }}
+          </div>
+
+          <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+            <a href="{% url 'dashboard:index' %}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4 py-2">
+              <i class="bi bi-calendar-check-fill me-2"></i> Confirm Booking
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

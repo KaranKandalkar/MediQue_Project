@@ -1,0 +1,100 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Hospital Appointments{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filter & Action Header -->
+<div class="mq-card p-3 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <form method="get" class="d-flex flex-wrap gap-2 flex-grow-1">
+      <input type="date" name="date" class="form-control form-control-sm" style="max-width: 170px;" value="{{ selected_date|default:'' }}">
+      
+      <select name="department" class="form-select form-select-sm" style="max-width: 200px;">
+        <option value="">-- All Departments --</option>
+        {% for d in departments %}
+          <option value="{{ d.id }}" {% if selected_dept == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="status" class="form-select form-select-sm" style="max-width: 160px;">
+        <option value="">-- All Statuses --</option>
+        {% for code, label in statuses %}
+          <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel-fill me-1"></i> Filter</button>
+      <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-light border"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </form>
+
+    <a href="{% url 'appointments:book_appointment' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-calendar-plus me-1"></i> Book New Slot
+    </a>
+  </div>
+</div>
+
+<!-- Appointments Table -->
+<div class="mq-card">
+  <div class="mq-card-header">
+    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar2-range me-2 text-primary"></i>Appointment Schedule</h6>
+    <span class="badge bg-light text-muted border">{{ appointments|length }} Appointments</span>
+  </div>
+  <div class="table-responsive">
+    <table class="mq-table">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Patient</th>
+          <th>Specialist Doctor</th>
+          <th>Department</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in appointments %}
+          <tr>
+            <td>
+              <div class="fw-bold text-dark">{{ appt.appointment_date|date:"M d, Y" }}</div>
+              <div class="small text-muted">{{ appt.appointment_time|time:"H:i" }}</div>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ appt.patient.display_name }}</div>
+              <div class="small text-muted">{{ appt.patient.phone_number }}</div>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ appt.doctor.full_name }}</div>
+              <div class="small text-muted">Room: {{ appt.doctor.room_number|default:"Cabin" }}</div>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ appt.department.name }}</span></td>
+            <td><span class="small text-muted">{{ appt.reason|truncatewords:6 }}</span></td>
+            <td><span class="status-badge status-{{ appt.status|lower }}">{{ appt.get_status_display }}</span></td>
+            <td>
+              <div class="d-flex gap-1">
+                {% if user.is_admin_role or user.is_receptionist_role %}
+                  {% if appt.status == 'SCHEDULED' and appt.appointment_date == today %}
+                    <a href="{% url 'appointments:check_in' appt.id %}" class="btn btn-sm btn-success" title="Check-in & generate queue token">
+                      <i class="bi bi-box-arrow-in-right"></i> Check-In
+                    </a>
+                  {% endif %}
+                {% endif %}
+
+                {% if appt.is_cancellable %}
+                  <a href="{% url 'appointments:cancel_appointment' appt.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this appointment?');" title="Cancel Appointment">
+                    <i class="bi bi-x-circle"></i>
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">No appointments found matching your search.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

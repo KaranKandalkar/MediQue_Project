@@ -1,0 +1,177 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Hospital Live Queue Monitor – {{ today|date:"M d, Y" }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filters Bar -->
+<div class="mq-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-4">
+      <select name="department" class="form-select">
+        <option value="">-- All Departments --</option>
+        {% for d in departments %}
+          <option value="{{ d.id }}" {% if selected_dept == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select name="doctor" class="form-select">
+        <option value="">-- All Doctors --</option>
+        {% for doc in doctors %}
+          <option value="{{ doc.id }}" {% if selected_doc == doc.id %}selected{% endif %}>{{ doc.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel-fill me-1"></i> Filter Queue</button>
+      <a href="{% url 'queue_management:live_queue' %}" class="btn btn-light border" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </div>
+  </form>
+</div>
+
+<!-- Tabs for Waiting vs Active vs Completed -->
+<div class="mq-card">
+  <div class="mq-card-header">
+    <ul class="nav nav-pills card-header-pills" id="queueTabs">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabWaiting">
+          <i class="bi bi-hourglass-split me-1"></i> Waiting ({{ waiting_tokens|length }})
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabActive">
+          <i class="bi bi-person-fill-check me-1"></i> In Room / Called ({{ active_tokens|length }})
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCompleted">
+          <i class="bi bi-check2-all me-1"></i> Completed ({{ completed_tokens|length }})
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content">
+    <!-- Waiting Tab -->
+    <div class="tab-pane fade show active" id="tabWaiting">
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Department</th>
+              <th>Priority</th>
+              <th>Time Issued</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tok in waiting_tokens %}
+              <tr class="{% if tok.is_emergency %}table-danger{% endif %}">
+                <td>
+                  <a href="{% url 'queue_management:token_detail' tok.id %}" class="fw-bold {% if tok.is_emergency %}text-danger{% else %}text-primary{% endif %} text-decoration-none">
+                    {{ tok.token_number }}
+                  </a>
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ tok.patient.display_name }}</div>
+                  <div class="small text-muted">{{ tok.patient.phone_number }}</div>
+                </td>
+                <td>{{ tok.doctor.full_name }}</td>
+                <td><span class="badge bg-light text-dark border">{{ tok.department.name }}</span></td>
+                <td>
+                  {% if tok.is_emergency %}
+                    <span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill"></i> EMERGENCY</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary">Normal</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted">{{ tok.created_at|time:"H:i" }}</td>
+                <td>
+                  <a href="{% url 'queue_management:token_detail' tok.id %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye"></i> View Pass
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">No waiting patients in this selection.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- In Room / Called Tab -->
+    <div class="tab-pane fade" id="tabActive">
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Room</th>
+              <th>Status</th>
+              <th>Called At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tok in active_tokens %}
+              <tr>
+                <td class="fw-bold text-primary">{{ tok.token_number }}</td>
+                <td>{{ tok.patient.display_name }}</td>
+                <td>{{ tok.doctor.full_name }}</td>
+                <td><span class="badge bg-warning text-dark">{{ tok.doctor.room_number|default:"Cabin 1" }}</span></td>
+                <td><span class="status-badge status-{{ tok.status|lower }}">{{ tok.get_status_display }}</span></td>
+                <td class="text-muted">{{ tok.called_at|time:"H:i"|default:"Recently" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">No consultations actively in progress.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Completed Tab -->
+    <div class="tab-pane fade" id="tabCompleted">
+      <div class="table-responsive">
+        <table class="mq-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Completed At</th>
+              <th>Diagnosis Summary</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tok in completed_tokens %}
+              <tr>
+                <td class="fw-bold text-dark">{{ tok.token_number }}</td>
+                <td>{{ tok.patient.display_name }}</td>
+                <td>{{ tok.doctor.full_name }}</td>
+                <td class="text-muted">{{ tok.completed_at|time:"H:i" }}</td>
+                <td class="text-muted small">
+                  {{ tok.consultation.diagnosis|default:"Routine consultation completed."|truncatewords:10 }}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">No completed consultations yet today.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
